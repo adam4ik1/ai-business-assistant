@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Business Assistant</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f5f9;color:#182230;margin:0;padding:28px}
+main{max-width:1050px;margin:auto}
+header,section,.card{background:white;padding:20px;border-radius:14px;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.label{color:#687386;font-size:14px}
+.value{font-size:25px;font-weight:bold;margin-top:8px}
+.notice{background:#fff0c2;padding:12px;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px;border-bottom:1px solid #e5e8ef}
+th{color:#687386}
+input{padding:10px;border:1px solid #ccd2dd;border-radius:8px;width:220px;max-width:85%}
+@media(max-width:650px){body{padding:12px}section{overflow-x:auto}table{min-width:650px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="label">BUSINESS ANALYTICS · UZS</p>
+<h1>AI Business Assistant</h1>
+<p>Profitability dashboard for a concrete products factory</p>
+<p class="notice"><b>Educational demo:</b> all figures are fictional sample data.</p>
+</header>
+
+<div class="cards">
+<div class="card"><div class="label">Products analysed</div><div class="value" id="count">5</div></div>
+<div class="card"><div class="label">Highest gross margin</div><div class="value" id="margin">—</div><p id="marginName"></p></div>
+<div class="card"><div class="label">Highest monthly gross profit</div><div class="value" id="bestProfit">—</div><p id="bestName"></p></div>
+<div class="card"><div class="label">Total monthly gross profit</div><div class="value" id="total">—</div></div>
+</div>
+
+<section>
+<h2>Product economics</h2>
+<p class="label">Search for a product by name</p>
+<input id="search" placeholder="e.g. Concrete M200">
+<table>
+<thead><tr><th>Product</th><th>Cost</th><th>Price</th><th>Profit/unit</th><th>Margin</th><th>Monthly gross profit</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</section>
+
+<section>
+<h2>AI-generated insights</h2>
+<ul id="insights"></ul>
+<p class="label">Gross profit is not net profit. Operating expenses and taxes are excluded.</p>
+</section>
+</main>
+
+<script>
+const products = [
+{name:"Concrete M200",cost:350000,price:450000,volume:120},
+{name:"Concrete M300",cost:410000,price:530000,volume:85},
+{name:"Paving tiles 60 mm",cost:68000,price:95000,volume:900},
+{name:"Wall block 20 cm",cost:14500,price:21000,volume:1400},
+{name:"Garden curb",cost:8200,price:12500,volume:1100}
+].map(p=>({...p,profit:p.price-p.cost,margin:(p.price-p.cost)/p.price,monthly:(p.price-p.cost)*p.volume}));
+
+const money=n=>new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(n);
+const highestMargin=[...products].sort((a,b)=>b.margin-a.margin)[0];
+const highestProfit=[...products].sort((a,b)=>b.monthly-a.monthly)[0];
+
+document.getElementById("margin").textContent=(highestMargin.margin*100).toFixed(1)+"%";
+document.getElementById("marginName").textContent=highestMargin.name;
+document.getElementById("bestProfit").textContent=money(highestProfit.monthly);
+document.getElementById("bestName").textContent=highestProfit.name;
+document.getElementById("total").textContent=money(products.reduce((s,p)=>s+p.monthly,0));
+
+function render(){
+ const query=document.getElementById("search").value.toLowerCase();
+ const visible=products.filter(p=>p.name.toLowerCase().includes(query));
+ document.getElementById("rows").innerHTML=visible.map(p=>`
+ <tr><td>${p.name}</td><td>${money(p.cost)}</td>
+ <td>${money(p.price)}</td><td>${money(p.profit)}</td>
+ <td>${(p.margin*100).toFixed(1)}%</td><td>${money(p.monthly)}</td></tr>`).join("");
+}
+document.getElementById("search").addEventListener("input",render);
+render();
+
+document.getElementById("insights").innerHTML=[
+ `${highestMargin.name} has the highest sample gross margin: ${(highestMargin.margin*100).toFixed(1)}%.`,
+ `${highestProfit.name} contributes the most estimated monthly gross profit: ${money(highestProfit.monthly)} UZS.`,
+ "Gross profit excludes payroll, utilities, repairs, depreciation, delivery, taxes and other expenses."
+].map(x=>`<li>${x}</li>`).join("");
+</script>
+</body>
+</html>
